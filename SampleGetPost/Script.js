@@ -1,6 +1,6 @@
 ﻿weatherApp = {};
 weatherApp.weathers = [];
-weatherApp.url = "https://alextestapp.firebaseio.com/.json";
+weatherApp.url = "https://alextestapp.firebaseio.com/";
 weatherApp.addWeather = function () {
     "use strict";
     //Post Goes Here
@@ -38,6 +38,7 @@ weatherApp.showWeather = function () {
             var data = JSON.parse(this.response);
             weatherApp.weathers = [];
             for (var w in data) {
+                data[w].key = w;
                 weatherApp.weathers.push(data[w]);
             }
             weatherApp.writeOutput();
@@ -55,8 +56,15 @@ weatherApp.writeOutput = function () {
     //Ouputs data from the array to the output div
     holder = "";
     for (var w in weatherApp.weathers) {
-        holder += weatherApp.weathers[w].city + ": " + weatherApp.weathers[w].temp + "<br/>";
+        holder += weatherApp.weathers[w].city + ": " + weatherApp.weathers[w].key + "<br/>";
     }
     document.getElementById("output").innerHTML = holder;
 };
-weatherApp.showWeather();
+weatherApp.DeleteTarget = function () {
+    var urlTarget = document.getElementById("url-target").value;
+    var url = weatherApp.url + urlTarget + "/.json";
+    var request = new XMLHttpRequest();
+    request.open("DELETE", url);
+    request.send();
+};
+//weatherApp.showWeather();
