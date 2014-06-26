@@ -81,11 +81,37 @@ weatherApp.writeOutput = function () {
     holder = "";
     for (var w in weatherApp.weathers) {
         holder += weatherApp.weathers[w].city +
-            ": <button onclick='weatherApp.Delete(\"" + weatherApp.weathers[w].key + "\")'>Delete</button><br/>";
+            ": <button onclick='weatherApp.Delete(\"" + weatherApp.weathers[w].key + "\")'>Delete</button>" +
+            "<button onclick='weatherApp.Update(" + w + ")'>Update</button><br/>";
     }
     document.getElementById("output").innerHTML = holder;
 };
+weatherApp.saveUpdate = function (index) {
+    weatherApp.weathers[index].city = document.getElementById("edit-city").value;
+    weatherApp.weathers[index].temp = document.getElementById("edit-temp").value;
 
+    weatherApp.Ajax(
+        "PATCH",
+        weatherApp.URLMaker(null, [weatherApp.weathers[index].key]),
+        {
+            temp: document.getElementById("edit-temp").value,
+            city: document.getElementById("edit-city").value
+        },
+        weatherApp.showWeather,
+        console.log
+        );
+
+};
+weatherApp.Update = function (index) {
+
+    var updating = weatherApp.weathers[index];
+    var holder = "<input type='text' id='edit-city' value='" + updating.city + "' />";
+    holder += "<input type='text' id='edit-temp' value='" + updating.temp + "' />";
+    holder += "<button onclick='weatherApp.saveUpdate(" + index + ")'>Save</button>";
+    holder += "<button onclick='weatherApp.showWeather()'>Cancel</button>";
+
+    document.getElementById("output").innerHTML = holder;
+};
 weatherApp.Delete = function (urlTarget) {
     weatherApp.Ajax(
         "DELETE",
