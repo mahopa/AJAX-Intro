@@ -28,7 +28,7 @@ weatherApp.Ajax = function (/*Method notes?*/method, URL, data, success, failure
         }
         else {
             if (typeof failure === 'function') {
-                failure();
+                failure(this.response);
             }
             else {
                 console.log("Error on " + method + " to " + URL + ": " + this.response);
@@ -37,60 +37,44 @@ weatherApp.Ajax = function (/*Method notes?*/method, URL, data, success, failure
     };
     request.onerror = function () {
         if (typeof failure === 'function') {
-            failure();
+            failure(this.readyState + "Com Error");
         }
     };
-    request.send(data);
+    request.send(JSON.stringify(data));
 };
+
+weatherApp.AjaxGet = function (URL, success, failure) {
+    weatherApp.Ajax("GET", URL, null, success, failure);
+}
 weatherApp.addWeather = function () {
     "use strict";
     var weatherObject = {};
     weatherObject.temp = document.getElementById("temperature").value;
     weatherObject.city = document.getElementById("city").value;
-    var request = new XMLHttpRequest();
-    request.open("POST", weatherApp.URLMaker(), true);
-    request.onload = function () {
-        if (this.status >= 200 && this.status < 400) {
-            //Call Worked. Very Success. Much Win.
-            console.log(this.response);
-            weatherApp.showWeather();
-        }
-        else {
-            //Oh Noes you got a server error
-            console.log("Error on POST: " + this.response);
-        }
-    };
-    request.onerror = function () {
-        //This is where Communication or transport error are handled
-        console.log("Communication Error on POST");
-    };
-    request.send(JSON.stringify(weatherObject));
+
+    weatherApp.Ajax("POST", weatherApp.URLMaker(), weatherObject, weatherApp.showWeather, console.log);
 
 };
 weatherApp.showWeather = function () {
     //Get Goes Here
     console.log("show called");
-    var request = new XMLHttpRequest();
-    request.open("GET", weatherApp.URLMaker());
-    request.onload = function () {
-        if (this.status >= 200 && this.status < 400) {
-            //Do success things
-            var data = JSON.parse(this.response);
+
+    weatherApp.Ajax(
+        "GET", 
+        weatherApp.URLMaker(),
+        null,
+        function (data) {
+            data = JSON.parse(data);
             weatherApp.weathers = [];
             for (var w in data) {
-                data[w].key = w;
+                data[w].key = w;//Puts key into the object before storing it in the array
                 weatherApp.weathers.push(data[w]);
             }
             weatherApp.writeOutput();
         }
-        else {
-            console.log("Server Errror on GET: " + this.response);
-        }
-    };
-    request.onerror = function () {
-        console.log("Errr on GET");
-    };
-    request.send();
+        );
+
+
 };
 weatherApp.writeOutput = function () {
     //Ouputs data from the array to the output div
@@ -101,17 +85,14 @@ weatherApp.writeOutput = function () {
     }
     document.getElementById("output").innerHTML = holder;
 };
-weatherApp.DeleteTarget = function () {
-    var urlTarget = document.getElementById("url-target").value;
-    var url = weatherApp.url + urlTarget + "/.json";
-    var request = new XMLHttpRequest();
-    request.open("DELETE", weatherApp.URLMaker(null, [urlTarget]));
-    request.send();
-};
+
 weatherApp.Delete = function (urlTarget) {
-    var request = new XMLHttpRequest();
-    request.open("DELETE", weatherApp.URLMaker(null, [urlTarget]));
-    request.onload = function () { weatherApp.showWeather(); };
-    request.send();
+    weatherApp.Ajax(
+        "DELETE",
+        weatherApp.URLMaker(null, [urlTarget]),
+        null,
+        weatherApp.showWeather,
+        function (data) { console.log(data) }
+        );
 };
 weatherApp.showWeather();
